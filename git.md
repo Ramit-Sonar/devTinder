@@ -27,8 +27,8 @@ git push origin v1.0.0
 ## Example
 
 ```bash
-git tag -a v1.1.0 -m "PR: creating express server"
-git push origin v1.1.0
+git tag -a express-server -m "Completed Express server"
+git push origin express-server
 ```
 
 # Tag Versioning
