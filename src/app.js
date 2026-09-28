@@ -6,79 +6,29 @@ const app = express();
 
 const PORT = process.env.PORT || 5000;
 
-//we can use also regex in route
-// app.use(/.*fly$/, (req,res) => {
-//     res.send("only ac will work because b is optional")
-// })
+//here we check wheather admin is authorized or not but here one prblem same logic for checking authorized admin we need to write multiple time to solve this problem middle ware comes into the picture
 
-// app.use("/user", (req,res) => {
-//     res.send("HAHAHHAHAHAHAHA")
-// })
+app.get("/admin/getAllData", (req,res) => {
+    //Logic of checking if the request is authorized
+    const token = "xyz";
+    const isAdminAuthorized = token === "xyz";
+    if(isAdminAuthorized){
+        res.send("All Data Sent");
+    }else{
+        res.status(401).send("Unauthorized request");
+    }
+})
 
-// app.use("/ab*c", (req,res) => {
-//     res.send("only ac will work because b is optional")
-// })
-
-// app.use("/ab+c", (req,res) => {
-//     res.send("only ac will work because b is optional")
-// })
-
-
-
-// app.get(("/user"), (req,res ) => {
-//     console.log(req.query);
-//     res.send({firstname: "Ramit", lastname: "Sonar"},
-//         () => {
-//             //route handler two 
-//         }
-//     )
-// })
-
-//dynamic routing
-// app.get(("/user/:userId/:name/:password"), (req,res ) => {
-//     console.log(req.params);
-//     res.send({firstname: "Ramit", lastname: "Sonar"})
-// })
-
-app.use("/user", (req, res, next) => {
-    // res.send("i am routing handler 1");
-    next();
-},
-    [(req, res, next) => {
-        // res.send("i am routing handler 2");
-        next();
-    },
-    (req, res, next) => {
-        res.send("i am routing handler 3");
-        next();
-    }]
-)
-
-
-// app.post(("/user"), (req,res ) => {
-//     res.send("data save sucessfully in database")
-// })
-
-// app.delete(("/user"), (req,res ) => {
-//     res.send("data deleted sucessfully")
-// })
-
-
-// app.use("/test",(req,res) => {
-//     res.send("Hello from the server!")
-// })//request handlers 
-
-// app.use("/hello/h2",(req,res) => {
-//     res.send("Hello Hello Hello from h2!")
-// })
-
-// app.use("/hello",(req,res) => {
-//     res.send("Hello Hello Hello!")
-// })
-
-// app.use("/",(req,res) => {
-//     res.send("Hello From the Dashboard")
-// })
+app.get("/admin/deleteAllData", (req,res) => {
+    //Logic of checking if the request is authorized
+    const token = "xyz";
+    const isAdminAuthorized = token === "xyz";
+    if(isAdminAuthorized){
+        res.send("All Data Deleted");
+    }else{
+        res.status(401).send("Unauthorized request");
+    }
+})
 
 app.listen(PORT, () => {
     console.log(`Server is successfully listening on port ${PORT}`);
