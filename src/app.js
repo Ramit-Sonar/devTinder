@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 
 const app = express();
@@ -23,16 +25,34 @@ const PORT = process.env.PORT || 5000;
 
 
 
-app.get(("/user"), (req,res ) => {
-    console.log(req.query);
-    res.send({firstname: "Ramit", lastname: "Sonar"})
-})
+// app.get(("/user"), (req,res ) => {
+//     console.log(req.query);
+//     res.send({firstname: "Ramit", lastname: "Sonar"},
+//         () => {
+//             //route handler two 
+//         }
+//     )
+// })
 
 //dynamic routing
-app.get(("/user/:userId/:name/:password"), (req,res ) => {
-    console.log(req.params);
-    res.send({firstname: "Ramit", lastname: "Sonar"})
-})
+// app.get(("/user/:userId/:name/:password"), (req,res ) => {
+//     console.log(req.params);
+//     res.send({firstname: "Ramit", lastname: "Sonar"})
+// })
+
+app.use("/user", (req, res, next) => {
+    // res.send("i am routing handler 1");
+    next();
+},
+    [(req, res, next) => {
+        // res.send("i am routing handler 2");
+        next();
+    },
+    (req, res, next) => {
+        res.send("i am routing handler 3");
+        next();
+    }]
+)
 
 
 // app.post(("/user"), (req,res ) => {
