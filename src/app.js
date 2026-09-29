@@ -1,41 +1,25 @@
-require("dotenv").config();
-
-const { adminAuth, userAuth } = require("./middlewares/auth.js")
-
 const express = require("express");
+const User = require("./models/user.js")
 
 const app = express();
 
-const PORT = process.env.PORT || 5000;
-
-//Handle Auth Middleware for all GET, POST, ... requests 
-
-app.use("/admin", adminAuth)
-
-app.get("/admin/getAllData", (req, res) => {
-    res.send("get all data");
-})
-
-app.get("/admin/deleteAllData", (req, res) => {
+app.post("/signUp", async (req, res) => {
+    const userObj = {
+        firstName: "Ramit",
+        lastName: "Sonar",
+        emailId: "ramit@gmail.com",
+        password: "Dikshya@17"
+    }
+    //Creating a new instance of the User model
     try {
-        throw new Error("dsjfldskjfdskljdsfds")
-        res.send("All Data Deleted");
+        const user = new User(userObj)
+        await user.save();
+        res.status(200).send(user);
     } catch (err) {
-        res.status(500).send("something went wrong contact support team")
+        res.status(400).send("Error saving the user data:", err);
+
     }
 
 })
 
-app.get("/user", userAuth, (req, res) => {
-    throw new Error("dsjfldskjfdskljdsfds")
-    res.send("user is found")
-})
-
-//error handlers=> always write it toward the end 
-app.use("/", (err, req, res, next) => {
-    res.status(500).send("something went wrong")
-}) // the best way to write code in try catch block
-
-app.listen(PORT, () => {
-    console.log(`Server is successfully listening on port ${PORT}`);
-})//listen for the incoming request 
+module.exports = { app }
