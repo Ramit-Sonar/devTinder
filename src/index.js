@@ -8,15 +8,7 @@ const mongoose = require("mongoose");
 const PORT = process.env.PORT || 5000;
 
 connectDB()
-    .then(async() => {
-        // Test MongoDB insert
-        // await mongoose.connection.db.collection("users").insertOne({
-        //     firstName: "Ramit",
-        //     lastName: "Sonar"
-        // });
-
-        // console.log("Test user created");
-
+    .then(() => {
         app.on("error", (error) => {
             console.log('EXPRESS SERVER ERROR:', error);
         });
