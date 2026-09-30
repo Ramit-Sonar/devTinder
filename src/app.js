@@ -65,7 +65,7 @@ app.delete("/user/:id", async (req, res) => {
 app.delete("/user", async (req, res) => {
     emailId = req.body.emailId;
     try {
-        const user = await User.findOneAndDelete( emailId)
+        const user = await User.findOneAndDelete(emailId)
         if (!user) {
             res.status(404).send("user not found")
         } else {
@@ -82,12 +82,22 @@ app.patch("/user/:id", async (req, res) => {
     const userId = req.params.id;
     const data = req.body;
     try {
-        const user = await User.findByIdAndUpdate(userId,data,{returnDocument: "after"});
-        res.send("user updated successfully")
-        console.log(user);
-        
+        const user = await User.findByIdAndUpdate(
+            userId,
+            data,
+            {
+                returnDocument: 'after',
+                runValidators: true,
+            }
+        );
+        if (!user) {
+            res.status(404).send("user not found!")
+        } else {
+            res.send("user updated successfully")
+        }
+
     } catch (err) {
-        res.status(500).res("something went wrong")
+        res.status(500).send("Update Failed: ", err.message)
 
     }
 })
