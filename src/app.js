@@ -34,6 +34,22 @@ app.get("/user", async (req, res) => {
 
 })
 
+app.get("/getUser/:id", async (req, res) => {
+    const userId = req.params.id;
+
+    try {
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).send("User not found");
+        }
+
+        res.send(user);
+    } catch (err) {
+        res.status(500).send("Something went wrong");
+    }
+});
+
 //Feed API - HET/feed - ger all the users from the databasae
 app.get("/feed", async (req, res) => {
     try {
@@ -43,5 +59,7 @@ app.get("/feed", async (req, res) => {
         res.status(400).send("Something went wrong");
     }
 })
+
+
 
 module.exports = { app }
