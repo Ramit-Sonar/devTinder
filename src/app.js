@@ -34,6 +34,7 @@ app.get("/user", async (req, res) => {
 
 })
 
+//GET  user by id
 app.get("/getUser/:id", async (req, res) => {
     const userId = req.params.id;
 
@@ -49,6 +50,47 @@ app.get("/getUser/:id", async (req, res) => {
         res.status(500).send("Something went wrong");
     }
 });
+
+//delete a user from the database
+app.delete("/user/:id", async (req, res) => {
+    userId = req.params.id;
+    try {
+        const user = await User.findByIdAndDelete(userId)
+        res.status(200).send("user deleted successfully", user)
+    } catch (err) {
+        res.status(500).res("something went wrong")
+    }
+})
+
+app.delete("/user", async (req, res) => {
+    emailId = req.body.emailId;
+    try {
+        const user = await User.findOneAndDelete( emailId)
+        if (!user) {
+            res.status(404).send("user not found")
+        } else {
+            res.status(200).send("user deleted successfully", user)
+        }
+
+    } catch (err) {
+        res.status(500).res("something went wrong")
+    }
+})
+
+//update data of the user
+app.patch("/user/:id", async (req, res) => {
+    const userId = req.params.id;
+    const data = req.body;
+    try {
+        const user = await User.findByIdAndUpdate(userId,data,{returnDocument: "after"});
+        res.send("user updated successfully")
+        console.log(user);
+        
+    } catch (err) {
+        res.status(500).res("something went wrong")
+
+    }
+})
 
 //Feed API - HET/feed - ger all the users from the databasae
 app.get("/feed", async (req, res) => {
