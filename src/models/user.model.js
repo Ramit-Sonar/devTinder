@@ -65,7 +65,13 @@ const userSchema = new mongoose.Schema(
         skills: {
             type: [String],
             default: [],
-        },
+            validate: {
+                validator: function (skills) {
+                    return skills.length <= 10;
+                },
+                message: "You can add a maximum of 10 skills"
+            }
+        }
     },
     {
         timestamps: true,

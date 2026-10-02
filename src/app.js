@@ -1,5 +1,5 @@
 const express = require("express");
-const User = require("./models/user.js")
+const User = require("./models/user.model.js")
 
 const app = express();
 
@@ -7,15 +7,15 @@ app.use(express.json());
 
 app.post("/signUp", async (req, res) => {
 
+    const data = req.body;
     // Creating a new instance of the User model
     try {
-        const user = new User(req.body)
+        const user = new User(data)
         await user.save();
         res.status(200).send(user);
     } catch (err) {
         res.status(400).send("Error saving the user data:", err);
     }
-
 })
 
 // GET user by email
@@ -81,6 +81,31 @@ app.delete("/user", async (req, res) => {
 app.patch("/user/:id", async (req, res) => {
     const userId = req.params.id;
     const data = req.body;
+
+    const skills = data?.skills;
+    if(skills.length > 10){
+        throw new Error("You can add a maximum of 10 skills.")
+    }
+    
+    const allowedUpdates = [
+        "firstName",
+        "lastName",
+        "age",
+        "gender",
+        "photoUrl",
+        "about",
+        "skills",
+        "password"
+    ];
+
+    const isUpdateAllowed = Object.keys(data).every(
+        (k) => allowedUpdates.includes(k)
+    )
+
+    if(!isUpdateAllowed) {
+        throw new Error("Update not allowed");
+    }
+
     try {
         const user = await User.findByIdAndUpdate(
             userId,
