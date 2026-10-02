@@ -1,5 +1,7 @@
 const express = require("express");
 const User = require("./models/user.model.js")
+const validateSignupData = require("./utils/validation.js")
+const bcrypt = require("bcrypt");
 
 const app = express();
 
@@ -10,6 +12,9 @@ app.post("/signUp", async (req, res) => {
     try {
         const data = req.body;
 
+        //validate data
+        validateSignupData(req);
+
         // Check if user already exists
         const existingUser = await User.findOne({
             emailId: data.emailId
@@ -18,6 +23,12 @@ app.post("/signUp", async (req, res) => {
         if (existingUser) {
             return res.status(409).send("User already exists");
         }
+
+        // Hash Password
+        const passwordHash = await bcrypt.hash(data.password, 10);
+
+        // Replace plain password with hashed password
+        data.password = passwordHash;
 
         // Create a new User document
         const user = new User(data);
@@ -28,7 +39,37 @@ app.post("/signUp", async (req, res) => {
         res.status(201).send(user);
 
     } catch (err) {
-        res.status(400).send("Error saving user: " + err.message);
+        res.status(400).send("ERROR: " + err.message);
+    }
+});
+
+
+app.post("/login", async (req, res) => {
+
+    try {
+        const { emailId, password } = req.body;
+
+        // Find user by email
+        const user = await User.findOne({ emailId }).select("+password");
+
+        if (!user) {
+            return res.status(404).send("invalid credentials");
+        }
+
+        // Compare plain password with hashed password
+        const isPasswordValid = await bcrypt.compare(
+            password,
+            user.password
+        );
+
+        if (!isPasswordValid) {
+            return res.status(401).send("Invalid credentials");
+        }
+
+        res.send("Login successful");
+
+    } catch (err) {
+        res.status(400).send("ERROR: " + err.message);
     }
 });
 
@@ -98,10 +139,10 @@ app.patch("/user/:id", async (req, res) => {
     const data = req.body;
 
     const skills = data?.skills;
-    if(skills.length > 10){
+    if (skills.length > 10) {
         throw new Error("You can add a maximum of 10 skills.")
     }
-    
+
     const allowedUpdates = [
         "firstName",
         "lastName",
@@ -117,7 +158,7 @@ app.patch("/user/:id", async (req, res) => {
         (k) => allowedUpdates.includes(k)
     )
 
-    if(!isUpdateAllowed) {
+    if (!isUpdateAllowed) {
         throw new Error("Update not allowed");
     }
 
