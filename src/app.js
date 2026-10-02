@@ -5,18 +5,33 @@ const app = express();
 
 app.use(express.json());
 
-app.post("/signUp", async (req, res) => {
 
-    const data = req.body;
-    // Creating a new instance of the User model
+app.post("/signUp", async (req, res) => {
     try {
-        const user = new User(data)
+        const data = req.body;
+
+        // Check if user already exists
+        const existingUser = await User.findOne({
+            emailId: data.emailId
+        });
+
+        if (existingUser) {
+            return res.status(409).send("User already exists");
+        }
+
+        // Create a new User document
+        const user = new User(data);
+
+        // Save user to MongoDB
         await user.save();
-        res.status(200).send(user);
+
+        res.status(201).send(user);
+
     } catch (err) {
-        res.status(400).send("Error saving the user data:", err);
+        res.status(400).send("Error saving user: " + err.message);
     }
-})
+});
+
 
 // GET user by email
 app.get("/user", async (req, res) => {
