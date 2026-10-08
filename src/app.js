@@ -4,6 +4,7 @@ const validateSignupData = require("./utils/validation.js")
 const bcrypt = require("bcrypt");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
+const {userAuth} = require("./middlewares/auth.js")
 
 const app = express();
 
@@ -48,7 +49,6 @@ app.post("/signUp", async (req, res) => {
 
 
 app.post("/login", async (req, res) => {
-
     try {
         const { emailId, password } = req.body;
 
@@ -56,7 +56,7 @@ app.post("/login", async (req, res) => {
         const user = await User.findOne({ emailId }).select("+password");
 
         if (!user) {
-            return res.status(404).send("invalid credentials");
+            return res.status(401).send("Invalid credentials");
         }
 
         // Compare plain password with hashed password
@@ -69,162 +69,46 @@ app.post("/login", async (req, res) => {
             return res.status(401).send("Invalid credentials");
         }
 
-        const token = await jwt.sign({ _id: user._id }, "Dikshya@6465");
+        // Create JWT
+        const token = jwt.sign(
+            { _id: user._id },
+            process.env.JWT_ACCESS_SECRET,
+            {
+                expiresIn: process.env.JWT_ACCESS_EXPIRES_IN
+            }
+        );
 
-        res.cookie("token", token);
+        // Store JWT in HTTP-only cookie
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict"
+        });
 
-        res.send("Login successful");
+        res.status(200).send("Login successful");
 
-    } catch (err) {
-        res.status(400).send("ERROR: " + err.message);
-    }
-});
-
-app.get("/profile", async (req, res) => {
-    try {
-        const cookie = req.cookies;
-
-        const { token } = cookie;
-        if(!token){
-            return res.send("Invalid token");
-        }
-
-        const decode = await jwt.verify(token, "Dikshya@6465")
-
-        const user = await User.findById(decode._id)
-
-        if(!user){
-            return res.send("user not found");
-        }
-
-
-
-        res.send(user)
-    } catch (err) {
-        res.status(400).send("ERROR: " + err.message);
-    }
-
-})
-
-
-// GET user by email
-app.get("/user", async (req, res) => {
-    const userEmail = req.body.emailId;
-
-    try {
-        const user = await User.find({ emailId: userEmail })
-        if (user.length === 0) {
-            res.status(404).send("user not found")
-        }
-        res.send(user)
-    } catch (err) {
-        res.status(400).send("Something went wrong");
-    }
-
-})
-
-//GET  user by id
-app.get("/getUser/:id", async (req, res) => {
-    const userId = req.params.id;
-
-    try {
-        const user = await User.findById(userId);
-
-        if (!user) {
-            return res.status(404).send("User not found");
-        }
-
-        res.send(user);
     } catch (err) {
         res.status(500).send("Something went wrong");
     }
 });
 
-//delete a user from the database
-app.delete("/user/:id", async (req, res) => {
-    userId = req.params.id;
+app.get("/profile", userAuth, async (req, res) => {
     try {
-        const user = await User.findByIdAndDelete(userId)
-        res.status(200).send("user deleted successfully", user)
+        res.send(req.user);
     } catch (err) {
-        res.status(500).res("something went wrong")
+        res.status(400).send("ERROR: " + err.message);
     }
-})
+});
 
-app.delete("/user", async (req, res) => {
-    emailId = req.body.emailId;
-    try {
-        const user = await User.findOneAndDelete(emailId)
-        if (!user) {
-            res.status(404).send("user not found")
-        } else {
-            res.status(200).send("user deleted successfully", user)
-        }
 
-    } catch (err) {
-        res.status(500).res("something went wrong")
-    }
-})
 
-//update data of the user
-app.patch("/user/:id", async (req, res) => {
-    const userId = req.params.id;
-    const data = req.body;
 
-    const skills = data?.skills;
-    if (skills.length > 10) {
-        throw new Error("You can add a maximum of 10 skills.")
-    }
 
-    const allowedUpdates = [
-        "firstName",
-        "lastName",
-        "age",
-        "gender",
-        "photoUrl",
-        "about",
-        "skills",
-        "password"
-    ];
 
-    const isUpdateAllowed = Object.keys(data).every(
-        (k) => allowedUpdates.includes(k)
-    )
 
-    if (!isUpdateAllowed) {
-        throw new Error("Update not allowed");
-    }
 
-    try {
-        const user = await User.findByIdAndUpdate(
-            userId,
-            data,
-            {
-                returnDocument: 'after',
-                runValidators: true,
-            }
-        );
-        if (!user) {
-            res.status(404).send("user not found!")
-        } else {
-            res.send("user updated successfully")
-        }
 
-    } catch (err) {
-        res.status(500).send("Update Failed: ", err.message)
 
-    }
-})
-
-//Feed API - HET/feed - ger all the users from the databasae
-app.get("/feed", async (req, res) => {
-    try {
-        const users = await User.find({});
-        res.send(users)
-    } catch (err) {
-        res.status(400).send("Something went wrong");
-    }
-})
 
 
 
