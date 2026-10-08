@@ -100,6 +100,9 @@ app.get("/profile", userAuth, async (req, res) => {
     }
 });
 
+app.post("/sendConnectionRequest", userAuth, async(req,res) => {
+    res.send(req.user.firstName+" sending a connection request");
+})
 
 
 
