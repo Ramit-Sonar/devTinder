@@ -1,9 +1,15 @@
 const express = require("express");
 const User = require("../models/user.model.js");
-const validateSignupData = require("../utils/validation.js");
+const { validateSignupData } = require("../utils/validation.js");
 const bcrypt = require("bcrypt");
 
 const authRouter = express.Router();
+
+const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict"
+};
 
 authRouter.post("/signUp", async (req, res) => {
     try {
@@ -63,9 +69,7 @@ authRouter.post("/login", async (req, res) => {
 
         // Store JWT in HTTP-only cookie
         res.cookie("token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict"
+            ...cookieOptions
         });
 
         return res.status(200).send("Login successful");
@@ -74,5 +78,14 @@ authRouter.post("/login", async (req, res) => {
         return res.status(500).send("Something went wrong");
     }
 });
+
+authRouter.post("/logout", (req, res) => {
+    res
+        .cookie("token", null, {
+            ...cookieOptions,
+            expires: new Date(0)
+        })
+        .status(200).send("Logout successful");
+})
 
 module.exports = authRouter;
