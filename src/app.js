@@ -4,7 +4,7 @@ const validateSignupData = require("./utils/validation.js")
 const bcrypt = require("bcrypt");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
-const {userAuth} = require("./middlewares/auth.js")
+const { userAuth } = require("./middlewares/auth.js")
 
 const app = express();
 
@@ -28,14 +28,14 @@ app.post("/signUp", async (req, res) => {
             return res.status(409).send("User already exists");
         }
 
+        // Create a new User document
+        const user = new User(data);
+
         // Hash Password
-        const passwordHash = await bcrypt.hash(data.password, 10);
+        const passwordHash = await user.hashPassword();
 
         // Replace plain password with hashed password
         data.password = passwordHash;
-
-        // Create a new User document
-        const user = new User(data);
 
         // Save user to MongoDB
         await user.save();
@@ -60,23 +60,14 @@ app.post("/login", async (req, res) => {
         }
 
         // Compare plain password with hashed password
-        const isPasswordValid = await bcrypt.compare(
-            password,
-            user.password
-        );
+        const isPasswordValid = await user.validatePassword(password);
 
         if (!isPasswordValid) {
             return res.status(401).send("Invalid credentials");
         }
 
         // Create JWT
-        const token = jwt.sign(
-            { _id: user._id },
-            process.env.JWT_ACCESS_SECRET,
-            {
-                expiresIn: process.env.JWT_ACCESS_EXPIRES_IN
-            }
-        );
+        const token = user.getJWT();
 
         // Store JWT in HTTP-only cookie
         res.cookie("token", token, {
@@ -100,19 +91,9 @@ app.get("/profile", userAuth, async (req, res) => {
     }
 });
 
-app.post("/sendConnectionRequest", userAuth, async(req,res) => {
-    res.send(req.user.firstName+" sending a connection request");
+app.post("/sendConnectionRequest", userAuth, async (req, res) => {
+    res.send(req.user.firstName + " sending a connection request");
 })
-
-
-
-
-
-
-
-
-
-
 
 
 module.exports = { app }

@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 const userSchema = new mongoose.Schema(
     {
@@ -38,8 +40,8 @@ const userSchema = new mongoose.Schema(
             required: true,
             minLength: 8,
             select: false,
-            validate(value){
-                if(!validator.isStrongPassword(value)){
+            validate(value) {
+                if (!validator.isStrongPassword(value)) {
                     throw new Error("Password is weak")
                 }
             }
@@ -65,8 +67,8 @@ const userSchema = new mongoose.Schema(
             type: String,
             default:
                 "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTIn4fjDd1YPwl2P1Vv56dF3tMkFuGQugtwDchshGs0Wg&s",
-            validate(value){
-                if(!validator.isURL(value)){
+            validate(value) {
+                if (!validator.isURL(value)) {
                     throw new Error("Photo URL is not valid");
                 }
             }
@@ -81,8 +83,8 @@ const userSchema = new mongoose.Schema(
         skills: {
             type: [String],
             default: [],
-            validate(value){
-                if(value.length > 10){
+            validate(value) {
+                if (value.length > 10) {
                     throw new Error("Doesnot allow more than 10 skills")
                 }
             }
@@ -92,6 +94,29 @@ const userSchema = new mongoose.Schema(
         timestamps: true,
     }
 );
+
+userSchema.methods.getJWT = function () {
+    return jwt.sign(
+        {
+            _id: this._id
+        },
+        process.env.JWT_ACCESS_SECRET,
+        {
+            expiresIn: process.env.JWT_ACCESS_EXPIRES_IN
+        }
+    )
+}
+
+userSchema.methods.validatePassword = async function (passwordInputByUser) {
+    return await bcrypt.compare(
+        passwordInputByUser,
+        this.password
+    );
+}
+
+userSchema.methods.hashPassword = function () {
+    return bcrypt.hash(this.password, 10);
+};
 
 const User = mongoose.model("User", userSchema);
 
