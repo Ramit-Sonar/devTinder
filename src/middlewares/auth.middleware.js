@@ -17,7 +17,7 @@ const userAuth = async (req, res, next) => {
         );
 
         // Find user from decoded _id
-        const user = await User.findById(decode._id);
+        const user = await User.findById(decode._id).select("+password");
 
         if (!user) {
             return res.status(404).send("User not found");

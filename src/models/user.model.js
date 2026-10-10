@@ -114,8 +114,12 @@ userSchema.methods.validatePassword = async function (passwordInputByUser) {
     );
 }
 
-userSchema.methods.hashPassword = function () {
-    return bcrypt.hash(this.password, 10);
+userSchema.methods.validateNewPassword = function (password) {
+    const passwordSchema = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+    if (!passwordSchema.test(password)) {
+        throw new Error("Password does not meet the requirements");
+    }
 };
 
 const User = mongoose.model("User", userSchema);
