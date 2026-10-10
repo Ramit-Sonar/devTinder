@@ -53,7 +53,7 @@ profileRouter.patch("/profile/password", userAuth, async (req, res) => {
 
         loggedInUser.validateNewPassword(newPassword);
 
-        loggedInUser.password = await bcrypt.hash(newPassword, 10);
+        loggedInUser.password = newPassword;
 
         await loggedInUser.save();
 

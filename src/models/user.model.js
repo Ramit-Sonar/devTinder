@@ -24,10 +24,9 @@ const userSchema = new mongoose.Schema(
         emailId: {
             type: String,
             required: true,
-            unique: true,
+            unique: true,  // Creates a unique index on email to prevent duplicates and speed up searches.
             lowercase: true,
             trim: true,
-            index: true,
             validate(value) {
                 if (!validator.isEmail(value)) {
                     throw new Error("Email address is not valid")
@@ -94,6 +93,12 @@ const userSchema = new mongoose.Schema(
         timestamps: true,
     }
 );
+
+userSchema.pre("save", async function () {
+    if (!this.isModified("password")) return;
+
+    this.password = await bcrypt.hash(this.password, 10);
+});
 
 userSchema.methods.getJWT = function () {
     return jwt.sign(
