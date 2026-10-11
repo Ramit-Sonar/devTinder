@@ -15,10 +15,10 @@ authRouter.post("/signUp", async (req, res) => {
     try {
         const data = req.body;
 
-        // Validate data
+        // Validate signup data
         validateSignupData(req);
 
-        // Check if user already exists
+        // Check whether the user already exists
         const existingUser = await User.findOne({
             emailId: data.emailId
         });
@@ -30,19 +30,13 @@ authRouter.post("/signUp", async (req, res) => {
         // Create a new User document
         const user = new User(data);
 
-        // Hash password
-        const passwordHash = await bcrypt.hash(data.password, 10);
-
-        // Replace plain password with hashed password
-        user.password = passwordHash;
-
-        // Save user to MongoDB
+        // Hash the password automatically using pre("save")
         await user.save();
 
-        res.status(201).send("Signup successful");
+        return res.status(201).send("Signup successful");
 
     } catch (err) {
-        res.status(400).send("ERROR: " + err.message);
+        return res.status(400).send("ERROR: " + err.message);
     }
 });
 

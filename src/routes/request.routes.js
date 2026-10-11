@@ -75,5 +75,57 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req, res)
     }
 });
 
+requestRouter.post("/request/review/:status/:requestId", userAuth, async (req, res) => {
+    try {
+        const loggedInUser = req.user;
+        const { requestId, status } = req.params;
+
+        const allowedStatuses = ["accepted", "rejected"];
+
+        // Validate the review status
+        if (!allowedStatuses.includes(status)) {
+            return res.status(400).json({
+                message: "Invalid status. Allowed values are 'accepted' and 'rejected'."
+            });
+        }
+
+        // Find a pending request addressed to the logged-in user
+        const connectionRequest = await Connection.findOne({
+            _id: requestId,
+            toUserId: loggedInUser._id,
+            status: "interested"
+        });
+
+        if (!connectionRequest) {
+            return res.status(404).json({
+                message: "Pending connection request not found"
+            });
+        }
+
+        // Update the request status to accepted or rejected
+        connectionRequest.status = status;
+        await connectionRequest.save();
+
+        return res.status(200).json({
+            message: `Connection request ${status} successfully`,
+            data: connectionRequest
+        });
+
+    } catch (err) {
+        // Handle invalid MongoDB document IDs
+        if (err.name === "CastError") {
+            return res.status(400).json({
+                message: "Invalid connection request ID"
+            });
+        }
+
+        return res.status(500).json({
+            message: "Internal server error"
+        });
+    }
+});
+
+
+
 
 module.exports = requestRouter;
