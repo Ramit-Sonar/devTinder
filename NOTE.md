@@ -6,3 +6,9 @@
 -User already exists → return res.send()
 -Successful signup → res.send()
 -Unexpected error → catch → res.send()
+
+-thought process - POST vs GET
+
+-select() selects fields from the current query's documents;
+-populate() fetches related documents through a reference.
+-.populate("fieldName", "field1 field2 field3")

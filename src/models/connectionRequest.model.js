@@ -4,7 +4,7 @@ const connectionSchema = new mongoose.Schema(
     {
         fromUserId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
+            ref: "User",//refrence to the user collection
             required: [true, "Sender user ID is required"]
         },
 
