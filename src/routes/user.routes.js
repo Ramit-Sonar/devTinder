@@ -65,6 +65,11 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
 userRouter.get("/user/feed", userAuth, async (req, res) => {
     try {
         const loggedInUser = req.user;
+        const page = parseInt(req.query.page) || 1;
+        let limit = parseInt(req.query.limit) || 10;
+        limit = limit > 50 ? 50 : limit;
+        const skip = (page - 1) * limit;
+
 
         // Find all connection records involving the logged-in user
         const connectionRequests = await Connection.find({
@@ -90,7 +95,9 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
             _id: {
                 $nin: [loggedInUser._id, ...connectedUserIds]
             }
-        }).select("firstName lastName photoUrl age gender about skills");
+        }).select("firstName lastName photoUrl age gender about skills")
+            .skip(skip)
+            .limit(limit);
 
         return res.status(200).json({
             message: "Feed users fetched successfully",
