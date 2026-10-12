@@ -62,4 +62,47 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
     }
 });
 
+userRouter.get("/user/feed", userAuth, async (req, res) => {
+    try {
+        const loggedInUser = req.user;
+
+        // Find all connection records involving the logged-in user
+        const connectionRequests = await Connection.find({
+            $or: [
+                { fromUserId: loggedInUser._id },
+                { toUserId: loggedInUser._id }
+            ]
+        }).select("fromUserId toUserId");
+
+        // Collect IDs of users who already have a connection record
+        const connectedUserIds = [
+            ...new Set(
+                connectionRequests.map((connection) => {
+                    return connection.fromUserId.toString() === loggedInUser._id.toString()
+                        ? connection.toUserId.toString()
+                        : connection.fromUserId.toString();
+                })
+            )
+        ]
+
+        // Exclude the logged-in user and users with existing connection records
+        const feedUsers = await User.find({
+            _id: {
+                $nin: [loggedInUser._id, ...connectedUserIds]
+            }
+        }).select("firstName lastName photoUrl age gender about skills");
+
+        return res.status(200).json({
+            message: "Feed users fetched successfully",
+            count: feedUsers.length,
+            data: feedUsers
+        });
+
+    } catch (err) {
+        return res.status(500).json({
+            message: "Failed to fetch feed users"
+        });
+    }
+});
+
 module.exports = userRouter;
